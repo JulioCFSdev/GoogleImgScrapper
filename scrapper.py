@@ -29,7 +29,7 @@ def download_image(url, file_path, log_file):
 # Configuração do Selenium sem modo headless
 def setup_driver():
     options = webdriver.ChromeOptions()
-    # options.add_argument('--headless')  # Removido para abrir a janela do navegador
+    options.add_argument('--headless')  # Removido para abrir a janela do navegador
     service = Service(ChromeDriverManager().install())
     driver = webdriver.Chrome(service=service, options=options)
     return driver
@@ -64,10 +64,18 @@ def scrape_google_images(search_query, num_images=500):
 
         for img in images:
             try:
-                src = img.get_attribute('src') or img.get_attribute('data-src')
-                if src and 'http' in src:
-                    image_urls.add(src)
-                    print(f"Imagem coletada: {src}")
+                width = int(img.get_attribute('width'))
+                height = int(img.get_attribute('height'))
+
+                # Filtra as imagens com tamanho menor que 100x100
+                if width > 100 and height > 100:
+                    src = img.get_attribute('src') or img.get_attribute('data-src')
+                    if src and 'http' in src:
+                        image_urls.add(src)
+                        print(f"Imagem coletada: {src} (Tamanho: {width}x{height})")
+                else:
+                    print(f"Imagem ignorada por ser pequena (Tamanho: {width}x{height})")
+                    
                 if len(image_urls) >= num_images:
                     break
             except Exception as e:
@@ -92,4 +100,5 @@ def scrape_google_images(search_query, num_images=500):
     driver.quit()
 
 if __name__ == "__main__":
-    scrape_google_images("femur x ray normal", 200)
+    scrape_google_images("human femur x ray normal", 500)
+
